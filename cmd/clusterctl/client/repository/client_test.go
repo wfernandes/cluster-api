@@ -64,3 +64,60 @@ func Test_newRepositoryClient_LocalFileSystemRepository(t *testing.T) {
 		})
 	}
 }
+
+func Test_newRepositoryClient_GithubRepository(t *testing.T) {
+	githubProvider := "https://github.com/myorg/myrepo/releases/v1.0.0/bootstrap-components.yaml"
+	type fields struct {
+		provider config.Provider
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		err    bool
+	}{
+		{
+			name: "successfully creates repository client with github backend and scheme == \"https\"",
+			fields: fields{
+				provider: config.NewProvider("foo", githubProvider, clusterctlv1.BootstrapProviderType),
+			},
+		},
+		{
+			name: "returns error if provider url is not properly formatted github url",
+			fields: fields{
+				provider: config.NewProvider("foo", "https://github.com/myorg/myrepo", clusterctlv1.BootstrapProviderType),
+			},
+			err: true,
+		},
+		{
+			name: "returns error if provider url is not a github or localfilesystem",
+			fields: fields{
+				provider: config.NewProvider("foo", "https://gitlab.com/myorg/myrepo", clusterctlv1.BootstrapProviderType),
+			},
+			err: true,
+		},
+		{
+			name: "returns error if provider url doesn't have correct scheme",
+			fields: fields{
+				provider: config.NewProvider("foo", "http://github.com/myorg/myrepo", clusterctlv1.BootstrapProviderType),
+			},
+			err: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repoClient, err := newRepositoryClient(tt.fields.provider, test.NewFakeVariableClient())
+			if err != nil && !tt.err {
+				t.Fatalf("got error %v when none was expected", err)
+			}
+			if err == nil && tt.err {
+				t.Fatal("expected error, but received none")
+			}
+			if repoClient != nil {
+				if _, ok := repoClient.repository.(*gitHubRepository); !ok {
+					t.Fatalf("got repository of type %T when *repository.gitHubRepository was expected", repoClient.repository)
+				}
+			}
+		})
+	}
+
+}

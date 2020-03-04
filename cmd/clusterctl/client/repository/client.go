@@ -154,7 +154,7 @@ func repositoryFactory(providerConfig config.Provider, configVariablesClient con
 		if err != nil {
 			return nil, errors.Wrap(err, "error creating the GitHub repository client")
 		}
-		return repo, err
+		return repo, nil
 	}
 
 	// if the url is a local filesystem repository
@@ -163,7 +163,7 @@ func repositoryFactory(providerConfig config.Provider, configVariablesClient con
 		if err != nil {
 			return nil, errors.Wrap(err, "error creating the local filesystem repository client")
 		}
-		return repo, err
+		return repo, nil
 	}
 
 	return nil, errors.Errorf("invalid provider url. there are no provider implementation for %q schema", rURL.Scheme)
