@@ -44,22 +44,22 @@ type TemplateClient interface {
 
 // templateClient implements TemplateClient.
 type templateClient struct {
-	provider              config.Provider
-	version               string
-	repository            Repository
-	configVariablesClient config.VariablesClient
+	provider     config.Provider
+	version      string
+	repository   Repository
+	configClient config.Client
 }
 
 // Ensure templateClient implements the TemplateClient interface.
 var _ TemplateClient = &templateClient{}
 
 // newTemplateClient returns a templateClient.
-func newTemplateClient(provider config.Provider, version string, repository Repository, configVariablesClient config.VariablesClient) *templateClient {
+func newTemplateClient(provider config.Provider, version string, repository Repository, configClient config.Client) *templateClient {
 	return &templateClient{
-		provider:              provider,
-		version:               version,
-		repository:            repository,
-		configVariablesClient: configVariablesClient,
+		provider:     provider,
+		version:      version,
+		repository:   repository,
+		configClient: configClient,
 	}
 }
 
@@ -100,5 +100,5 @@ func (c *templateClient) Get(flavor, targetNamespace string, listVariablesOnly b
 		log.V(1).Info("Using", "Override", name, "Provider", c.provider.ManifestLabel(), "Version", version)
 	}
 
-	return NewTemplate(rawYaml, c.configVariablesClient, targetNamespace, listVariablesOnly)
+	return NewTemplate(rawYaml, c.configClient.Variables(), targetNamespace, listVariablesOnly)
 }

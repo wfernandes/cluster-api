@@ -161,12 +161,12 @@ func newLocalRepository(providerConfig config.Provider, configVariablesClient co
 	basePath = filepath.Clean("/" + basePath) // ensure basePath starts with "/"
 
 	repo := &localRepository{
-		providerConfig:        providerConfig,
-		configVariablesClient: configVariablesClient,
-		basepath:              basePath,
-		providerLabel:         providerID,
-		defaultVersion:        defaultVersion,
-		componentsPath:        componentsPath,
+		providerConfig: providerConfig,
+		// configVariablesClient: configVariablesClient,
+		basepath:       basePath,
+		providerLabel:  providerID,
+		defaultVersion: defaultVersion,
+		componentsPath: componentsPath,
 	}
 
 	if defaultVersion == "latest" {

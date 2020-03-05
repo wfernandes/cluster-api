@@ -142,7 +142,7 @@ func InjectClusterClientFactory(factory ClusterClientFactory) Option {
 	}
 }
 
-// New returns a configClient.
+// New returns a clusterctl client
 func New(path string, options ...Option) (Client, error) {
 	return newClusterctlClient(path, options...)
 }

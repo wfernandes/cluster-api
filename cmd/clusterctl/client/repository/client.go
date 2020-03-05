@@ -32,6 +32,7 @@ import (
 // Provider repository are expected to contain two types of YAML files:
 // - YAML files defining the provider components (CRD, Controller, RBAC etc.)
 // - YAML files defining the cluster templates (Cluster, Machines)
+// TODO: (wfernandes) - YAML files defining the provider's metadata
 type Client interface {
 	config.Provider
 
@@ -52,8 +53,8 @@ type Client interface {
 // repositoryClient implements Client.
 type repositoryClient struct {
 	config.Provider
-	configVariablesClient config.VariablesClient
-	repository            Repository
+	configClient config.Client
+	repository   Repository
 }
 
 // ensure repositoryClient implements Client.
@@ -64,11 +65,11 @@ func (c *repositoryClient) GetVersions() ([]string, error) {
 }
 
 func (c *repositoryClient) Components() ComponentsClient {
-	return newComponentsClient(c.Provider, c.repository, c.configVariablesClient)
+	return newComponentsClient(c.Provider, c.repository, c.configClient)
 }
 
 func (c *repositoryClient) Templates(version string) TemplateClient {
-	return newTemplateClient(c.Provider, version, c.repository, c.configVariablesClient)
+	return newTemplateClient(c.Provider, version, c.repository, c.configClient)
 }
 
 func (c *repositoryClient) Metadata(version string) MetadataClient {
@@ -88,14 +89,14 @@ func InjectRepository(repository Repository) Option {
 }
 
 // New returns a Client.
-func New(provider config.Provider, configVariablesClient config.VariablesClient, options ...Option) (Client, error) {
-	return newRepositoryClient(provider, configVariablesClient, options...)
+func New(provider config.Provider, configClient config.Client, options ...Option) (Client, error) {
+	return newRepositoryClient(provider, configClient, options...)
 }
 
-func newRepositoryClient(provider config.Provider, configVariablesClient config.VariablesClient, options ...Option) (*repositoryClient, error) {
+func newRepositoryClient(provider config.Provider, configClient config.Client, options ...Option) (*repositoryClient, error) {
 	client := &repositoryClient{
-		Provider:              provider,
-		configVariablesClient: configVariablesClient,
+		Provider:     provider,
+		configClient: configClient,
 	}
 	for _, o := range options {
 		o(client)
@@ -103,7 +104,7 @@ func newRepositoryClient(provider config.Provider, configVariablesClient config.
 
 	// if there is an injected repository, use it, otherwise use a default one
 	if client.repository == nil {
-		r, err := repositoryFactory(provider, configVariablesClient)
+		r, err := repositoryFactory(provider, configClient.Variables())
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get repository client for the %s with name %s", provider.Type(), provider.Name())
 		}
@@ -169,16 +170,24 @@ func repositoryFactory(providerConfig config.Provider, configVariablesClient con
 	return nil, errors.Errorf("invalid provider url. there are no provider implementation for %q schema", rURL.Scheme)
 }
 
-const overrideFolder = "overrides"
+// TODO: wfernandes
+// 1. config.Client will hold on to the "path" variable and expose a method
+// called Overrides() which will interpolate the overrides path from the
+// config path passed in.
+// 2. RepositoryClient will hold on to the config.Client
+// 3. getLocalOverride should take in the full path created from
+// configClient.OverridesPath()/f.provider.ManifestLabel()/version/path.
 
 // getLocalOverride return local override file from the config folder, if it exists.
 // This is required for development purposes, but it can be used also in production as a workaround for problems on the official repositories
 func getLocalOverride(provider config.Provider, version, path string) ([]byte, error) {
 	// local override files are searched at $home/.cluster-api/overrides/<provider-label>/<version>/<path>
 	homeFolder := filepath.Join(homedir.HomeDir(), config.ConfigFolder)
-	overridePath := filepath.Join(homeFolder, overrideFolder, provider.ManifestLabel(), version, path)
+	overridePath := filepath.Join(homeFolder, config.overrideFolder, provider.ManifestLabel(), version, path)
 
 	// it the local override exists, use it
+	// fmt.Println("Override PATH:", overridePath)
+	// TODO: Print out the actual full overridePath that is being used.
 	_, err := os.Stat(overridePath)
 	if err == nil {
 		content, err := ioutil.ReadFile(overridePath)

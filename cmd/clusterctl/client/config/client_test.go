@@ -25,8 +25,6 @@ import (
 
 func TestConfigClient(t *testing.T) {
 
-	// reader := test.NewFakeReader()
-
 	basepath := "/tmp/some-dir"
 	t.Run("overrides path", func(t *testing.T) {
 
@@ -38,12 +36,12 @@ func TestConfigClient(t *testing.T) {
 			{
 				name:                  "from provided config file path",
 				cfgPath:               filepath.Join(basepath, "config.yaml"),
-				expectedOverridesPath: filepath.Join(basepath, overrideFolder),
+				expectedOverridesPath: filepath.Join(basepath, OverrideFolder),
 			},
 			{
 				name:                  "from default config file path",
 				cfgPath:               "",
-				expectedOverridesPath: filepath.Join(homedir.HomeDir(), ConfigFolder, overrideFolder),
+				expectedOverridesPath: filepath.Join(homedir.HomeDir(), ConfigFolder, OverrideFolder),
 			},
 		}
 

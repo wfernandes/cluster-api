@@ -39,7 +39,7 @@ type Client interface {
 	OverridesPath() string
 }
 
-const overrideFolder = "overrides"
+const OverrideFolder = "overrides"
 
 // configClient implements Client.
 type configClient struct {
@@ -60,9 +60,9 @@ func (c *configClient) Variables() VariablesClient {
 
 func (c *configClient) OverridesPath() string {
 	if len(c.cfgPath) == 0 {
-		return filepath.Join(homedir.HomeDir(), ConfigFolder, overrideFolder)
+		return filepath.Join(homedir.HomeDir(), ConfigFolder, OverrideFolder)
 	}
-	return filepath.Join(filepath.Dir(c.cfgPath), overrideFolder)
+	return filepath.Join(filepath.Dir(c.cfgPath), OverrideFolder)
 }
 
 // Option is a configuration option supplied to New

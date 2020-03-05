@@ -64,6 +64,7 @@ func Test_componentsClient_Get(t *testing.T) {
 	type fields struct {
 		provider              config.Provider
 		repository            Repository
+		configClient          config.Client
 		configVariablesClient config.VariablesClient
 	}
 	type args struct {
@@ -85,6 +86,30 @@ func Test_componentsClient_Get(t *testing.T) {
 		want    want
 		wantErr bool
 	}{
+		// {
+		// 	name: "Pass with local override",
+		// 	fields: fields{
+		// 		provider: p1,
+		// 		repository: test.NewFakeRepository().
+		// 			WithPaths("root", "components.yaml").
+		// 			WithDefaultVersion("v1.0.0").
+		// 			WithFile("v1.0.0", "components.yaml", util.JoinYaml(namespaceYaml, controllerYaml, configMapYaml)),
+		// 		configClient: config.New("some-path", config.InjectReader(test.NewFakeReader().WithVar(variableName, variableValue))),
+		// 	},
+		// 	args: args{
+		// 		version:           "v1.0.0",
+		// 		targetNamespace:   "",
+		// 		watchingNamespace: "",
+		// 	},
+		// 	want: want{
+		// 		provider:          p1,
+		// 		version:           "v1.0.0",      // version detected
+		// 		targetNamespace:   namespaceName, // default targetNamespace detected
+		// 		watchingNamespace: "",
+		// 		variables:         []string{variableName}, // variable detected
+		// 	},
+		// 	wantErr: false,
+		// },
 		{
 			name: "Pass",
 			fields: fields{
