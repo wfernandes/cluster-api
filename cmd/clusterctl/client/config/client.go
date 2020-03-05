@@ -17,7 +17,10 @@ limitations under the License.
 package config
 
 import (
+	"path/filepath"
+
 	"github.com/pkg/errors"
+	"k8s.io/client-go/util/homedir"
 	"sigs.k8s.io/cluster-api/cmd/clusterctl/internal/test"
 )
 
@@ -31,11 +34,17 @@ type Client interface {
 
 	// Variables provide access to environment variables and/or variables defined in the clusterctl configuration file.
 	Variables() VariablesClient
+
+	// OverridesPath provides access to overrides configuration
+	OverridesPath() string
 }
+
+const overrideFolder = "overrides"
 
 // configClient implements Client.
 type configClient struct {
-	reader Reader
+	reader  Reader
+	cfgPath string
 }
 
 // ensure configClient implements Client.
@@ -47,6 +56,13 @@ func (c *configClient) Providers() ProvidersClient {
 
 func (c *configClient) Variables() VariablesClient {
 	return newVariablesClient(c.reader)
+}
+
+func (c *configClient) OverridesPath() string {
+	if len(c.cfgPath) == 0 {
+		return filepath.Join(homedir.HomeDir(), ConfigFolder, overrideFolder)
+	}
+	return filepath.Join(filepath.Dir(c.cfgPath), overrideFolder)
 }
 
 // Option is a configuration option supplied to New
@@ -65,7 +81,9 @@ func New(path string, options ...Option) (Client, error) {
 }
 
 func newConfigClient(path string, options ...Option) (*configClient, error) {
-	client := &configClient{}
+	client := &configClient{
+		cfgPath: path,
+	}
 	for _, o := range options {
 		o(client)
 	}
