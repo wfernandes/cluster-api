@@ -72,7 +72,7 @@ func (f fakeClient) GetProvidersConfig() ([]Provider, error) {
 	return f.internalClient.GetProvidersConfig()
 }
 
-func (f fakeClient) GetProviderComponents(provider string, providerType clusterctlv1.ProviderType, options ComponentsOptions) (Components, error) {
+func (f fakeClient) GetProviderComponents(provider string, providerType clusterctlv1.ProviderType, options ComponentsInput) (Components, error) {
 	return f.internalClient.GetProviderComponents(provider, providerType, options)
 }
 
@@ -443,7 +443,7 @@ type fakeComponentClient struct {
 	configClient   config.Client
 }
 
-func (f *fakeComponentClient) Get(options repository.ComponentsOptions) (repository.Components, error) {
+func (f *fakeComponentClient) Get(options repository.ComponentsInput) (repository.Components, error) {
 	if options.Version == "" {
 		options.Version = f.fakeRepository.DefaultVersion()
 	}

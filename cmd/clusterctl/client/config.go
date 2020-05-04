@@ -43,9 +43,9 @@ func (c *clusterctlClient) GetProvidersConfig() ([]Provider, error) {
 	return rr, nil
 }
 
-func (c *clusterctlClient) GetProviderComponents(provider string, providerType clusterctlv1.ProviderType, options ComponentsOptions) (Components, error) {
+func (c *clusterctlClient) GetProviderComponents(provider string, providerType clusterctlv1.ProviderType, options ComponentsInput) (Components, error) {
 	// ComponentsOptions is an alias for repository.ComponentsOptions; this makes the conversion
-	inputOptions := repository.ComponentsOptions{
+	inputOptions := repository.ComponentsInput{
 		Version:           options.Version,
 		TargetNamespace:   options.TargetNamespace,
 		WatchingNamespace: options.WatchingNamespace,
@@ -97,7 +97,20 @@ type GetClusterTemplateOptions struct {
 	// listVariablesOnly sets the GetClusterTemplate method to return the list of variables expected by the template
 	// without executing any further processing.
 	ListVariablesOnly bool
+
+	// TemplateEngine specifies the template processor required to generate
+	// cluster templates. It uses the defaultTemplateProcessor if none is
+	// specified.
+	// This is experimental.
+	TemplateProcessor TemplateEngine
 }
+
+type TemplateEngine int
+
+const (
+	Default TemplateEngine = iota
+	Ytt
+)
 
 // numSources return the number of template sources currently set on a GetClusterTemplateOptions.
 func (o *GetClusterTemplateOptions) numSources() int {
@@ -258,7 +271,7 @@ func (c *clusterctlClient) getTemplateFromRepository(cluster cluster.Client, sou
 		return nil, err
 	}
 
-	template, err := repo.Templates(version).Get(source.Flavor, targetNamespace, listVariablesOnly)
+	template, err := repo.Templates(repository.TemplatesInput{version: version, listVariablesOnly: listVariablesOnly}).Get(source.Flavor, targetNamespace)
 	if err != nil {
 		return nil, err
 	}
@@ -286,6 +299,8 @@ func (c *clusterctlClient) getTemplateFromConfigMap(cluster cluster.Client, sour
 
 // getTemplateFromURL returns a workload cluster template from an URL.
 func (c *clusterctlClient) getTemplateFromURL(cluster cluster.Client, source URLSourceOptions, targetNamespace string, listVariablesOnly bool) (Template, error) {
+	// NOTE (wfernandes) Why does GetFromURL part of the cluster tempalte
+	// client. It should be part of the repository template client.
 	return cluster.Template().GetFromURL(source.URL, targetNamespace, listVariablesOnly)
 }
 

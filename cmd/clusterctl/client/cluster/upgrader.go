@@ -325,7 +325,7 @@ func (u *providerUpgrader) getUpgradeComponents(provider UpgradeItem) (repositor
 		return nil, err
 	}
 
-	options := repository.ComponentsOptions{
+	options := repository.ComponentsInput{
 		Version:           provider.NextVersion,
 		TargetNamespace:   provider.Namespace,
 		WatchingNamespace: provider.WatchedNamespace,

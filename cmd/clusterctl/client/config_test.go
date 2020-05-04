@@ -156,7 +156,7 @@ func Test_clusterctlClient_GetProviderComponents(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewWithT(t)
 
-			options := ComponentsOptions{
+			options := ComponentsInput{
 				TargetNamespace:   tt.args.targetNameSpace,
 				WatchingNamespace: tt.args.watchingNamespace,
 			}
@@ -201,7 +201,7 @@ func Test_getComponentsByName_withEmptyVariables(t *testing.T) {
 		WithRepository(repository1).
 		WithCluster(cluster1)
 
-	options := ComponentsOptions{
+	options := ComponentsInput{
 		TargetNamespace:   "ns1",
 		WatchingNamespace: "",
 		SkipVariables:     true,

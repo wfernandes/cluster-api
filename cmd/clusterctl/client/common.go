@@ -27,7 +27,7 @@ import (
 
 // getComponentsByName is a utility method that returns components
 // for a given provider with options including targetNamespace, and watchingNamespace.
-func (c *clusterctlClient) getComponentsByName(provider string, providerType clusterctlv1.ProviderType, options repository.ComponentsOptions) (repository.Components, error) {
+func (c *clusterctlClient) getComponentsByName(provider string, providerType clusterctlv1.ProviderType, options repository.ComponentsInput) (repository.Components, error) {
 
 	// Parse the abbreviated syntax for name[:version]
 	name, version, err := parseProviderName(provider)

@@ -17,7 +17,6 @@ limitations under the License.
 package repository
 
 import (
-	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/cluster-api/cmd/clusterctl/client/config"
 	"sigs.k8s.io/cluster-api/cmd/clusterctl/internal/util"
@@ -45,9 +44,14 @@ type Template interface {
 
 // template implements Template.
 type template struct {
+	// TODO (wfernandes) should this be a map[string][interface{}]. That way
+	// we can store the values as well.
 	variables       []string
 	targetNamespace string
 	objs            []unstructured.Unstructured
+	// TODO (wfernandes): should this be a set of files or should we expect the fetchers to put
+	// it all in a single yaml?
+	rawYaml []byte
 }
 
 // Ensures template implements the Template interface.
@@ -69,36 +73,41 @@ func (t *template) Yaml() ([]byte, error) {
 	return util.FromUnstructured(t.objs)
 }
 
+func (t *template) RawYaml() []byte {
+	return t.rawYaml
+}
+
 // NewTemplate returns a new objects embedding a cluster template YAML file.
-func NewTemplate(rawYaml []byte, configVariablesClient config.VariablesClient, targetNamespace string, listVariablesOnly bool) (*template, error) {
-	// Inspect variables and replace with values from the configuration.
-	variables := inspectVariables(rawYaml)
-	if listVariablesOnly {
-		return &template{
-			variables:       variables,
-			targetNamespace: targetNamespace,
-		}, nil
-	}
+func NewTemplate(_ []byte, _ config.VariablesClient, targetNamespace string, _ bool) (*template, error) {
+	// 	// Inspect variables and replace with values from the configuration.
+	// 	variables := inspectVariables(rawYaml)
+	// 	if listVariablesOnly {
+	// 		return &template{
+	// 			variables:       variables,
+	// 			targetNamespace: targetNamespace,
+	// 		}, nil
+	// 	}
 
-	yaml, err := replaceVariables(rawYaml, variables, configVariablesClient, false)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to perform variable substitution")
-	}
+	// 	yaml, err := replaceVariables(rawYaml, variables, configVariablesClient, false)
+	// 	if err != nil {
+	// 		return nil, errors.Wrap(err, "failed to perform variable substitution")
+	// 	}
 
-	// Transform the yaml in a list of objects, so following transformation can work on typed objects (instead of working on a string/slice of bytes).
-	objs, err := util.ToUnstructured(yaml)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse yaml")
-	}
+	// 	// Transform the yaml in a list of objects, so following transformation can work on typed objects (instead of working on a string/slice of bytes).
+	// 	objs, err := util.ToUnstructured(yaml)
+	// 	if err != nil {
+	// 		return nil, errors.Wrap(err, "failed to parse yaml")
+	// 	}
 
-	// Ensures all the template components are deployed in the target namespace (applies only to namespaced objects)
-	// This is required in order to ensure a cluster and all the related objects are in a single namespace, that is a requirement for
-	// the clusterctl move operation (and also for many controller reconciliation loops).
-	objs = fixTargetNamespace(objs, targetNamespace)
+	// 	// Ensures all the template components are deployed in the target namespace (applies only to namespaced objects)
+	// 	// This is required in order to ensure a cluster and all the related objects are in a single namespace, that is a requirement for
+	// 	// the clusterctl move operation (and also for many controller reconciliation loops).
+	// 	objs = fixTargetNamespace(objs, targetNamespace)
 
-	return &template{
-		variables:       variables,
-		targetNamespace: targetNamespace,
-		objs:            objs,
-	}, nil
+	// 	return &template{
+	// 		variables:       variables,
+	// 		targetNamespace: targetNamespace,
+	// 		objs:            objs,
+	// 	}, nil
+	return nil, nil
 }

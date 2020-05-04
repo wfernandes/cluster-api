@@ -85,7 +85,7 @@ func Test_newTemplate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewWithT(t)
 
-			got, err := NewTemplate(tt.args.rawYaml, tt.args.configVariablesClient, tt.args.targetNamespace, tt.args.listVariablesOnly)
+			got, err := NewTemplate(newDefaultTemplateProcessor(), tt.args.rawYaml, tt.args.configVariablesClient, tt.args.targetNamespace, tt.args.listVariablesOnly)
 			if tt.wantErr {
 				g.Expect(err).To(HaveOccurred())
 				return

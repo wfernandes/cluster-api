@@ -29,7 +29,7 @@ type Client interface {
 	GetProvidersConfig() ([]Provider, error)
 
 	// GetProviderComponents returns the provider components for a given provider with options including targetNamespace, watchingNamespace.
-	GetProviderComponents(provider string, providerType clusterctlv1.ProviderType, options ComponentsOptions) (Components, error)
+	GetProviderComponents(provider string, providerType clusterctlv1.ProviderType, options ComponentsInput) (Components, error)
 
 	// Init initializes a management cluster by adding the requested list of providers.
 	Init(options InitOptions) ([]Components, error)

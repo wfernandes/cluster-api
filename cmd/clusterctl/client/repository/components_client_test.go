@@ -233,7 +233,7 @@ func Test_componentsClient_Get(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			gs := NewWithT(t)
 
-			options := ComponentsOptions{
+			options := ComponentsInput{
 				Version:           tt.args.version,
 				TargetNamespace:   tt.args.targetNamespace,
 				WatchingNamespace: tt.args.watchingNamespace,

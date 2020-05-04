@@ -138,7 +138,7 @@ func runGetComponents() error {
 		return err
 	}
 
-	options := client.ComponentsOptions{
+	options := client.ComponentsInput{
 		TargetNamespace:   cpo.targetNamespace,
 		WatchingNamespace: cpo.watchingNamespace,
 		SkipVariables:     true,

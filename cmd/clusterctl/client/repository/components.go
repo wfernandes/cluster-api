@@ -174,8 +174,9 @@ func (c *components) Yaml() ([]byte, error) {
 	return util.FromUnstructured(objs)
 }
 
-// ComponentsOptions is the inputs needed by the NewComponents
-type ComponentsOptions struct {
+// ComponentsInput is the inputs needed by the NewComponents
+// TODO: (wfernandes) CHANGE THIS TO ComponentsClientGetInput
+type ComponentsInput struct {
 	Version           string
 	TargetNamespace   string
 	WatchingNamespace string
@@ -192,12 +193,12 @@ type ComponentsOptions struct {
 // 4. Ensure all the ClusterRoleBinding which are referencing namespaced objects have the name prefixed with the namespace name
 // 5. Set the watching namespace for the provider controller
 // 6. Adds labels to all the components in order to allow easy identification of the provider objects
-func NewComponents(provider config.Provider, configClient config.Client, rawyaml []byte, options ComponentsOptions) (*components, error) {
+func NewComponents(provider config.Provider, configClient config.Client, rawyaml []byte, input ComponentsInput) (*components, error) {
 	// Inspect the yaml read from the repository for variables.
 	variables := inspectVariables(rawyaml)
 
 	// Replace variables with corresponding values read from the config
-	yaml, err := replaceVariables(rawyaml, variables, configClient.Variables(), options.SkipVariables)
+	yaml, err := replaceVariables(rawyaml, variables, configClient.Variables(), input.SkipVariables)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to perform variable substitution")
 	}
@@ -241,24 +242,24 @@ func NewComponents(provider config.Provider, configClient config.Client, rawyaml
 	// if targetNamespace is not specified, then defaultTargetNamespace is used. In case both targetNamespace and defaultTargetNamespace
 	// are empty, an error is returned
 
-	if options.TargetNamespace == "" {
-		options.TargetNamespace = defaultTargetNamespace
+	if input.TargetNamespace == "" {
+		input.TargetNamespace = defaultTargetNamespace
 	}
 
-	if options.TargetNamespace == "" {
+	if input.TargetNamespace == "" {
 		return nil, errors.New("target namespace can't be defaulted. Please specify a target namespace")
 	}
 
 	// add a Namespace object if missing (ensure the targetNamespace will be created)
-	instanceObjs = addNamespaceIfMissing(instanceObjs, options.TargetNamespace)
+	instanceObjs = addNamespaceIfMissing(instanceObjs, input.TargetNamespace)
 
 	// fix Namespace name in all the objects
-	instanceObjs = fixTargetNamespace(instanceObjs, options.TargetNamespace)
+	instanceObjs = fixTargetNamespace(instanceObjs, input.TargetNamespace)
 
 	// ensures all the ClusterRole and ClusterRoleBinding have the name prefixed with the namespace name and that
 	// all the clusterRole/clusterRoleBinding namespaced subjects refers to targetNamespace
 	// Nb. Making all the RBAC rules "namespaced" is required for supporting multi-tenancy
-	instanceObjs, err = fixRBAC(instanceObjs, options.TargetNamespace)
+	instanceObjs, err = fixRBAC(instanceObjs, input.TargetNamespace)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to fix ClusterRoleBinding names")
 	}
@@ -271,8 +272,8 @@ func NewComponents(provider config.Provider, configClient config.Client, rawyaml
 	}
 
 	// if the requested watchingNamespace is different from the defaultWatchingNamespace, fix it
-	if defaultWatchingNamespace != options.WatchingNamespace {
-		instanceObjs, err = fixWatchNamespace(instanceObjs, options.WatchingNamespace)
+	if defaultWatchingNamespace != input.WatchingNamespace {
+		instanceObjs, err = fixWatchNamespace(instanceObjs, input.WatchingNamespace)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to set watching namespace")
 		}
@@ -289,11 +290,11 @@ func NewComponents(provider config.Provider, configClient config.Client, rawyaml
 
 	return &components{
 		Provider:          provider,
-		version:           options.Version,
+		version:           input.Version,
 		variables:         variables,
 		images:            images,
-		targetNamespace:   options.TargetNamespace,
-		watchingNamespace: options.WatchingNamespace,
+		targetNamespace:   input.TargetNamespace,
+		watchingNamespace: input.WatchingNamespace,
 		instanceObjs:      instanceObjs,
 		sharedObjs:        sharedObjs,
 	}, nil
@@ -347,7 +348,7 @@ func inspectVariables(data []byte) []string {
 	return ret
 }
 
-func replaceVariables(yaml []byte, variables []string, configVariablesClient config.VariablesClient, skipVariables bool) ([]byte, error) {
+func replaceVariables(yaml []byte, variables []string, configVariablesClient VariablesGetter, skipVariables bool) ([]byte, error) {
 	tmp := string(yaml)
 	var missingVariables []string
 	for _, key := range variables {

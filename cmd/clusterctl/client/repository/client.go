@@ -39,7 +39,8 @@ type Client interface {
 
 	// Templates provide access to YAML file for generating workload cluster templates.
 	// Please note that templates are expected to exist for the infrastructure providers only.
-	Templates(version string) TemplateClient
+	// TODO: (wfernandes) DO SOMETHING ABOUT args here. Discuss with fpandini.
+	Templates(TemplatesInput) TemplateClient
 
 	// Metadata provide access to YAML with the provider's metadata.
 	Metadata(version string) MetadataClient
@@ -63,8 +64,23 @@ func (c *repositoryClient) Components() ComponentsClient {
 	return newComponentsClient(c.Provider, c.repository, c.configClient)
 }
 
-func (c *repositoryClient) Templates(version string) TemplateClient {
-	return newTemplateClient(c.Provider, version, c.repository, c.configClient.Variables())
+type TemplatesInput struct {
+	listVariablesOnly bool
+	version           string
+	templateProcessor string
+}
+
+func (c *repositoryClient) Templates(in TemplatesInput) TemplateClient {
+	// TODO: Pass in listVariablesOnly here instead of the Get method. We need
+	// this to be part of the template processor since it is used in
+	// replaceVariables()
+	return newTemplateClient(TemplateClientInput{
+		version:               in.version,
+		listVariablesOnly:     in.listVariablesOnly,
+		provider:              c.Provider,
+		repository:            c.repository,
+		configVariablesClient: c.configClient.Variables(),
+	})
 }
 
 func (c *repositoryClient) Metadata(version string) MetadataClient {

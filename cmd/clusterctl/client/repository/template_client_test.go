@@ -158,7 +158,12 @@ func Test_templates_Get(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewWithT(t)
 
-			f := newTemplateClient(tt.fields.provider, tt.fields.version, tt.fields.repository, tt.fields.configVariablesClient)
+			f := newTemplateClient(TemplateClientInput{
+				provider:              tt.fields.provider,
+				version:               tt.fields.version,
+				repository:            tt.fields.repository,
+				configVariablesClient: tt.fields.configVariablesClient,
+			})
 			got, err := f.Get(tt.args.flavor, tt.args.targetNamespace, tt.args.listVariablesOnly)
 			if tt.wantErr {
 				g.Expect(err).To(HaveOccurred())

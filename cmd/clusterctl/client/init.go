@@ -232,7 +232,7 @@ func (c *clusterctlClient) addToInstaller(options addToInstallerOptions, provide
 			}
 			continue
 		}
-		componentsOptions := repository.ComponentsOptions{
+		componentsOptions := repository.ComponentsInput{
 			TargetNamespace:   options.targetNamespace,
 			WatchingNamespace: options.watchingNamespace,
 		}
