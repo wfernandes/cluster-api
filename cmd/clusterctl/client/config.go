@@ -271,7 +271,7 @@ func (c *clusterctlClient) getTemplateFromRepository(cluster cluster.Client, sou
 		return nil, err
 	}
 
-	template, err := repo.Templates(repository.TemplatesInput{version: version, listVariablesOnly: listVariablesOnly}).Get(source.Flavor, targetNamespace)
+	template, err := repo.Templates(repository.TemplatesInput{ListVariablesOnly: listVariablesOnly}).Get(version, source.Flavor, targetNamespace)
 	if err != nil {
 		return nil, err
 	}

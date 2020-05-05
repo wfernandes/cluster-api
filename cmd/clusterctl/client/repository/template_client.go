@@ -17,12 +17,9 @@ limitations under the License.
 package repository
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	"sigs.k8s.io/cluster-api/cmd/clusterctl/client/config"
 	"sigs.k8s.io/cluster-api/cmd/clusterctl/internal/util"
-	logf "sigs.k8s.io/cluster-api/cmd/clusterctl/log"
 )
 
 // TemplateOptions defines a set of well-know variables that all the cluster templates are expected to manage;
@@ -40,7 +37,7 @@ import (
 // TemplateClient has methods to work with cluster templates hosted on a provider repository.
 // Templates are yaml files to be used for creating a guest cluster.
 type TemplateClient interface {
-	Get(flavor, targetNamespace string) (Template, error)
+	Get(version, flavor, targetNamespace string) (Template, error)
 }
 
 type VariablesGetter interface {
@@ -48,20 +45,17 @@ type VariablesGetter interface {
 }
 
 type TemplateProcessor interface {
+	// Fetch is repobsible for fetching the template artifacts required for
+	// processing the Yaml.
+	Fetch(version, flavor string) (*template, error)
 	// GetVariables parses the template rawYaml and sets the variables
 	GetVariables(*template) error
 	// ProcessYAML processes the template and returns the final yaml
 	ProcessYAML(*template) ([]byte, error)
 }
 
-type TemplateFetcher interface {
-	ArtifactName() string
-	Fetch() *template
-}
-
 // templateClient implements TemplateClient.
 type templateClient struct {
-	version               string
 	listVariablesOnly     bool
 	provider              config.Provider
 	repository            Repository
@@ -70,7 +64,6 @@ type templateClient struct {
 }
 
 type TemplateClientInput struct {
-	version               string
 	listVariablesOnly     bool
 	provider              config.Provider
 	repository            Repository
@@ -85,12 +78,16 @@ func newTemplateClient(input TemplateClientInput) *templateClient {
 	// this is where we can create or pass in the correct processor and
 	// fetcher through options pattern.
 	return &templateClient{
-		version:               input.version,
 		listVariablesOnly:     input.listVariablesOnly,
 		provider:              input.provider,
 		repository:            input.repository,
 		configVariablesClient: input.configVariablesClient,
-		processor:             newDefaultTemplateProcessor(input.listVariablesOnly, input.configVariablesClient),
+		processor: newDefaultTemplateProcessor(
+			input.listVariablesOnly,
+			input.configVariablesClient,
+			input.provider,
+			input.repository,
+		),
 	}
 }
 
@@ -98,8 +95,8 @@ func newTemplateClient(input TemplateClientInput) *templateClient {
 // In case the template does not exists, an error is returned.
 // TODO: (wfernandes) Fix this documentation.
 // Get assumes the following naming convention for templates: cluster-template[-<flavor_name>].yaml
-func (c *templateClient) Get(flavor, targetNamespace string) (Template, error) {
-	log := logf.Log
+func (c *templateClient) Get(version, flavor, targetNamespace string) (Template, error) {
+	// log := logf.Log
 
 	if targetNamespace == "" {
 		return nil, errors.New("invalid arguments: please provide a targetNamespace")
@@ -107,34 +104,13 @@ func (c *templateClient) Get(flavor, targetNamespace string) (Template, error) {
 
 	// we are always reading templateClient for a well know version, that usually is
 	// the version of the provider installed in the management cluster.
-	version := c.version
+	// NOTE: (wfernandes) Why are we doing this? Does version really need to
+	// be part of templateClient or can it be just passed into Get?
+	// version := c.version
 
-	// building template name according with the naming convention
-	name := "cluster-template"
-	if flavor != "" {
-		name = fmt.Sprintf("%s-%s", name, flavor)
-	}
-	name = fmt.Sprintf("%s.yaml", name)
-
-	// read the component YAML, reading the local override file if it exists, otherwise read from the provider repository
-	rawYaml, err := getLocalOverride(&newOverrideInput{
-		configVariablesClient: c.configVariablesClient,
-		provider:              c.provider,
-		version:               version,
-		filePath:              name,
-	})
+	t, err := c.processor.Fetch(version, flavor)
 	if err != nil {
 		return nil, err
-	}
-
-	if rawYaml == nil {
-		log.V(5).Info("Fetching", "File", name, "Provider", c.provider.ManifestLabel(), "Version", version)
-		rawYaml, err = c.repository.GetFile(version, name)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read %q from provider's repository %q", name, c.provider.ManifestLabel())
-		}
-	} else {
-		log.V(1).Info("Using", "Override", name, "Provider", c.provider.ManifestLabel(), "Version", version)
 	}
 
 	// return NewTemplate(c.processor) // rawYaml, c.configVariablesClient, targetNamespace, listVariablesOnly)
@@ -143,10 +119,10 @@ func (c *templateClient) Get(flavor, targetNamespace string) (Template, error) {
 	// NOTE: (wfernandes) this is now holding the reference to the rawYaml.
 	// Check if there is any difference from previous implementation. Is this
 	// efficient?
-	t := &template{
-		rawYaml:         rawYaml,
-		targetNamespace: targetNamespace,
-	}
+	// t := &template{
+	// 	rawYaml:         rawYaml,
+	// 	targetNamespace: targetNamespace,
+	// }
 
 	// GetVariables should parse the template and set the variables on the
 	// template object
@@ -175,6 +151,7 @@ func (c *templateClient) Get(flavor, targetNamespace string) (Template, error) {
 	// the clusterctl move operation (and also for many controller reconciliation loops).
 	objs = fixTargetNamespace(objs, targetNamespace)
 	t.objs = objs
+	t.targetNamespace = targetNamespace
 
 	return t, nil
 }

@@ -39,14 +39,14 @@ type Overrider interface {
 
 // overrides implements the Overrider interface.
 type overrides struct {
-	configVariablesClient config.VariablesClient
+	configVariablesClient VariablesGetter
 	providerLabel         string
 	version               string
 	filePath              string
 }
 
 type newOverrideInput struct {
-	configVariablesClient config.VariablesClient
+	configVariablesClient VariablesGetter
 	provider              config.Provider
 	version               string
 	filePath              string

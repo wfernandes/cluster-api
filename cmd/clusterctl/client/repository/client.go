@@ -65,9 +65,8 @@ func (c *repositoryClient) Components() ComponentsClient {
 }
 
 type TemplatesInput struct {
-	listVariablesOnly bool
-	version           string
-	templateProcessor string
+	ListVariablesOnly bool
+	TemplateProcessor string
 }
 
 func (c *repositoryClient) Templates(in TemplatesInput) TemplateClient {
@@ -75,8 +74,7 @@ func (c *repositoryClient) Templates(in TemplatesInput) TemplateClient {
 	// this to be part of the template processor since it is used in
 	// replaceVariables()
 	return newTemplateClient(TemplateClientInput{
-		version:               in.version,
-		listVariablesOnly:     in.listVariablesOnly,
+		listVariablesOnly:     in.ListVariablesOnly,
 		provider:              c.Provider,
 		repository:            c.repository,
 		configVariablesClient: c.configClient.Variables(),
