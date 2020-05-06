@@ -17,35 +17,19 @@ package repository
 
 import (
 	"fmt"
-
-	"github.com/pkg/errors"
-	"sigs.k8s.io/cluster-api/cmd/clusterctl/client/config"
-	logf "sigs.k8s.io/cluster-api/cmd/clusterctl/log"
 )
 
-type defaultTemplateProcessor struct {
-	skipVariables   bool
-	variablesGetter VariablesGetter
-	provider        config.Provider
-	repository      Repository
+type defaultYamlProcessor struct {
+	skipVariables bool
 }
 
-func newDefaultTemplateProcessor(
-	skipVariables bool,
-	variablesGetter VariablesGetter,
-	provider config.Provider,
-	repository Repository,
-) *defaultTemplateProcessor {
-	return &defaultTemplateProcessor{
-		skipVariables:   skipVariables,
-		variablesGetter: variablesGetter,
-		provider:        provider,
-		repository:      repository,
+func newDefaultYamlProcessor(skipVariables bool) *defaultYamlProcessor {
+	return &defaultYamlProcessor{
+		skipVariables: skipVariables,
 	}
 }
 
-func (tp *defaultTemplateProcessor) Fetch(version, flavor string) (*template, error) {
-	log := logf.Log
+func (tp *defaultYamlProcessor) ArtifactName(version, flavor string) string {
 	// building template name according with the naming convention
 	name := "cluster-template"
 	if flavor != "" {
@@ -53,49 +37,20 @@ func (tp *defaultTemplateProcessor) Fetch(version, flavor string) (*template, er
 	}
 	name = fmt.Sprintf("%s.yaml", name)
 
-	// read the component YAML, reading the local override file if it exists, otherwise read from the provider repository
-	rawYaml, err := getLocalOverride(&newOverrideInput{
-		configVariablesClient: tp.variablesGetter,
-		provider:              tp.provider,
-		version:               version,
-		filePath:              name,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if rawYaml == nil {
-		log.V(5).Info("Fetching", "File", name, "Provider", tp.provider.ManifestLabel(), "Version", version)
-		rawYaml, err = tp.repository.GetFile(version, name)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to read %q from provider's repository %q", name, tp.provider.ManifestLabel())
-		}
-	} else {
-		log.V(1).Info("Using", "Override", name, "Provider", tp.provider.ManifestLabel(), "Version", version)
-	}
-
-	return &template{
-		rawYaml: rawYaml,
-	}, nil
+	return name
 }
 
-func (tp *defaultTemplateProcessor) GetVariables(t *template) error {
-	variables := inspectVariables(t.rawYaml)
-	t.variables = variables
-	log := logf.Log
-
-	log.V(5).Info("GetVariables", "number of vars found", len(variables), "number of vars set", len(t.variables))
-	return nil
+func (tp *defaultYamlProcessor) GetVariables(rawArtifact []byte) ([]string, error) {
+	return inspectVariables(rawArtifact), nil
 }
 
-func (tp *defaultTemplateProcessor) ProcessYAML(t *template) ([]byte, error) {
-	log := logf.Log
-
-	log.V(5).Info("Processing yaml", "SkipVariables", tp.skipVariables)
+func (tp *defaultYamlProcessor) Process(rawArtifact []byte, variablesGetter VariablesGetter) ([]byte, error) {
+	variables := inspectVariables(rawArtifact)
 	processedYaml, err := replaceVariables(
-		t.rawYaml,
-		t.variables,
-		tp.variablesGetter,
+		rawArtifact,
+		variables,
+		variablesGetter,
+		// NOTE: WHAT TO DO ABOUT THIS????
 		tp.skipVariables,
 	)
 	if err != nil {

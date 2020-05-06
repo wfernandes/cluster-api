@@ -20,6 +20,7 @@ import (
 	"github.com/pkg/errors"
 	"sigs.k8s.io/cluster-api/cmd/clusterctl/client/config"
 	"sigs.k8s.io/cluster-api/cmd/clusterctl/internal/util"
+	logf "sigs.k8s.io/cluster-api/cmd/clusterctl/log"
 )
 
 // TemplateOptions defines a set of well-know variables that all the cluster templates are expected to manage;
@@ -44,14 +45,13 @@ type VariablesGetter interface {
 	Get(key string) (string, error)
 }
 
-type TemplateProcessor interface {
-	// Fetch is repobsible for fetching the template artifacts required for
-	// processing the Yaml.
-	Fetch(version, flavor string) (*template, error)
+type YamlProcessor interface {
+	ArtifactName(version, flavor string) string
 	// GetVariables parses the template rawYaml and sets the variables
-	GetVariables(*template) error
+	GetVariables([]byte) ([]string, error)
 	// ProcessYAML processes the template and returns the final yaml
-	ProcessYAML(*template) ([]byte, error)
+	// ProcessYAML(*template) ([]byte, error)
+	Process([]byte, VariablesGetter) ([]byte, error)
 }
 
 // templateClient implements TemplateClient.
@@ -60,7 +60,7 @@ type templateClient struct {
 	provider              config.Provider
 	repository            Repository
 	configVariablesClient config.VariablesClient
-	processor             TemplateProcessor
+	processor             YamlProcessor
 }
 
 type TemplateClientInput struct {
@@ -82,11 +82,8 @@ func newTemplateClient(input TemplateClientInput) *templateClient {
 		provider:              input.provider,
 		repository:            input.repository,
 		configVariablesClient: input.configVariablesClient,
-		processor: newDefaultTemplateProcessor(
+		processor: newDefaultYamlProcessor(
 			input.listVariablesOnly,
-			input.configVariablesClient,
-			input.provider,
-			input.repository,
 		),
 	}
 }
@@ -96,47 +93,50 @@ func newTemplateClient(input TemplateClientInput) *templateClient {
 // TODO: (wfernandes) Fix this documentation.
 // Get assumes the following naming convention for templates: cluster-template[-<flavor_name>].yaml
 func (c *templateClient) Get(version, flavor, targetNamespace string) (Template, error) {
-	// log := logf.Log
+	log := logf.Log
 
 	if targetNamespace == "" {
 		return nil, errors.New("invalid arguments: please provide a targetNamespace")
 	}
 
-	// we are always reading templateClient for a well know version, that usually is
-	// the version of the provider installed in the management cluster.
-	// NOTE: (wfernandes) Why are we doing this? Does version really need to
-	// be part of templateClient or can it be just passed into Get?
-	// version := c.version
+	name := c.processor.ArtifactName(version, flavor)
 
-	t, err := c.processor.Fetch(version, flavor)
+	// read the component YAML, reading the local override file if it exists, otherwise read from the provider repository
+	rawArtifact, err := getLocalOverride(&newOverrideInput{
+		configVariablesClient: c.configVariablesClient,
+		provider:              c.provider,
+		version:               version,
+		filePath:              name,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	// return NewTemplate(c.processor) // rawYaml, c.configVariablesClient, targetNamespace, listVariablesOnly)
-
-	// this template object would be returned by the TemplateFetcher
-	// NOTE: (wfernandes) this is now holding the reference to the rawYaml.
-	// Check if there is any difference from previous implementation. Is this
-	// efficient?
-	// t := &template{
-	// 	rawYaml:         rawYaml,
-	// 	targetNamespace: targetNamespace,
-	// }
+	if rawArtifact == nil {
+		log.V(5).Info("Fetching", "File", name, "Provider", c.provider.ManifestLabel(), "Version", version)
+		rawArtifact, err = c.repository.GetFile(version, name)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to read %q from provider's repository %q", name, c.provider.ManifestLabel())
+		}
+	} else {
+		log.V(1).Info("Using", "Override", name, "Provider", c.provider.ManifestLabel(), "Version", version)
+	}
 
 	// GetVariables should parse the template and set the variables on the
 	// template object
-	err = c.processor.GetVariables(t)
+	variables, err := c.processor.GetVariables(rawArtifact)
 	if err != nil {
 		return nil, err
 	}
 	// get variables for the template object
 	if c.listVariablesOnly {
-		return t, nil
+		return &template{
+			variables: variables,
+		}, nil
 	}
 
 	// process the template
-	processedYaml, err := c.processor.ProcessYAML(t)
+	processedYaml, err := c.processor.Process(rawArtifact, c.configVariablesClient)
 	if err != nil {
 		return nil, err
 	}
@@ -150,8 +150,9 @@ func (c *templateClient) Get(version, flavor, targetNamespace string) (Template,
 	// This is required in order to ensure a cluster and all the related objects are in a single namespace, that is a requirement for
 	// the clusterctl move operation (and also for many controller reconciliation loops).
 	objs = fixTargetNamespace(objs, targetNamespace)
-	t.objs = objs
-	t.targetNamespace = targetNamespace
 
-	return t, nil
+	return &template{
+		objs:            objs,
+		targetNamespace: targetNamespace,
+	}, nil
 }
