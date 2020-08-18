@@ -165,6 +165,12 @@ func (k *proxy) ListResources(labels map[string]string, namespaces ...string) ([
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to list api resources")
 	}
+	// listProvidersBackoff := newReadBackoff()
+	// if err := retryWithExponentialBackoff(listProvidersBackoff, func() error {
+	// 	return listProviders(p.proxy, providerList)
+	// }); err != nil {
+	// 	return nil, err
+	// }
 
 	// Select resources with list and delete methods (list is required by this method, delete by the callers of this method)
 	resourceList = discovery.FilteredBy(discovery.SupportsAllVerbs{Verbs: []string{"list", "delete"}}, resourceList)
