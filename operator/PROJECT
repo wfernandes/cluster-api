@@ -10,4 +10,7 @@ resources:
 - group: management.cluster.x-k8s.io
   kind: ControlPlaneProvider
   version: v1alpha1
+- group: management.cluster.x-k8s.io
+  kind: InfrastructureProvider
+  version: v1alpha1
 version: "2"
