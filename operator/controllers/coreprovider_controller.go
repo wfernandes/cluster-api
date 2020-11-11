@@ -24,7 +24,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	managementclusterxk8siov1alpha1 "sigs.k8s.io/cluster-api/api/v1alpha1"
+	managementclusterxk8siov1alpha1 "sigs.k8s.io/cluster-api/operator/api/v1alpha1"
 )
 
 // CoreProviderReconciler reconciles a CoreProvider object
@@ -37,7 +37,7 @@ type CoreProviderReconciler struct {
 // +kubebuilder:rbac:groups=management.cluster.x-k8s.io.cluster.x-k8s.io,resources=coreproviders,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=management.cluster.x-k8s.io.cluster.x-k8s.io,resources=coreproviders/status,verbs=get;update;patch
 
-func (r *CoreProviderReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+func (r *CoreProviderReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = context.Background()
 	_ = r.Log.WithValues("coreprovider", req.NamespacedName)
 
