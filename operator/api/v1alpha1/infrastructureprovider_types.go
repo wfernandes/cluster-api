@@ -35,6 +35,7 @@ type InfrastructureProviderSpec struct {
 type InfrastructureProviderStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	ProviderStatus `json:",inline"`
 }
 
 // +kubebuilder:object:root=true
