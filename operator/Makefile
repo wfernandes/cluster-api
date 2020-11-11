@@ -1,8 +1,42 @@
+# Copyright 2018 The Kubernetes Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# If you update this file, please follow
+# https://suva.sh/posts/well-documented-makefiles
+
+# Ensure Make is run with bash shell as some syntax below is bash-specific
+SHELL:=/usr/bin/env bash
+
+.DEFAULT_GOAL:=help
+
+TAG ?= dev
+ARCH ?= amd64
+ALL_ARCH = amd64 arm arm64 ppc64le s390x
+
+TOOLS_DIR := ../hack/tools
+TOOLS_BIN_DIR := $(TOOLS_DIR)/bin
+BIN_DIR := bin
+CONTROLLER_GEN := $(abspath $(TOOLS_BIN_DIR)/controller-gen)
+
+# Define Docker related variables. Releases should modify and double check these vars.
+REGISTRY ?= gcr.io/$(shell gcloud config get-value project)
+STAGING_REGISTRY ?= gcr.io/k8s-staging-cluster-api
+PROD_REGISTRY ?= us.gcr.io/k8s-artifacts-prod/cluster-api
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
-# Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
-CRD_OPTIONS ?= "crd:trivialVersions=true"
+IMAGE_NAME ?= cluster-api-operator
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -11,70 +45,78 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-all: manager
+all: test manager
 
-# Run tests
-test: generate fmt vet manifests
+help:  ## Display this help
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[0-9A-Za-z_-]+:.*?##/ { printf "  \033[36m%-45s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+.PHONY: test
+test: generate fmt vet manifests ## Run tests
 	go test ./... -coverprofile cover.out
 
-# Build manager binary
-manager: generate fmt vet
+.PHONY: manager
+manager: generate fmt vet ## Build manager binary
 	go build -o bin/manager main.go
 
-# Run against the configured Kubernetes cluster in ~/.kube/config
-run: generate fmt vet manifests
+.PHONY: run
+run: generate fmt vet manifests ## Run against the configured Kubernetes cluster in ~/.kube/config
 	go run ./main.go
 
-# Install CRDs into a cluster
-install: manifests
+.PHONY: install
+install: manifests ## Install CRDs into a cluster
 	kustomize build config/crd | kubectl apply -f -
 
-# Uninstall CRDs from a cluster
-uninstall: manifests
+.PHONY: uninstall
+uninstall: manifests ## Uninstall CRDs from a cluster
 	kustomize build config/crd | kubectl delete -f -
 
-# Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: manifests
+.PHONY: deploy
+deploy: manifests ## Deploy controller in the configured Kubernetes cluster in ~/.kube/config
 	cd config/manager && kustomize edit set image controller=${IMG}
 	kustomize build config/default | kubectl apply -f -
 
-# Generate manifests e.g. CRD, RBAC etc.
-manifests: controller-gen
-	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+.PHONY: manifests
+manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
+	$(CONTROLLER_GEN) \
+		paths="./..." \
+		crd:crdVersions=v1 \
+		rbac:roleName=manager-role \
+		output:crd:dir=./config/crd/bases \
+		output:webhook:dir=./config/webhook \
+		webhook
 
-# Run go fmt against code
-fmt:
+.PHONY: fmt
+fmt: ## Run go fmt against code
 	go fmt ./...
 
-# Run go vet against code
-vet:
+.PHONY: vet
+vet: ## Run go vet against code
 	go vet ./...
 
-# Generate code
-generate: controller-gen
-	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
+.PHONY: generate
+generate: $(CONTROLLER_GEN) ## Generate code
+	$(CONTROLLER_GEN) \
+		object:headerFile="hack/boilerplate.go.txt" \
+		paths="./api/..."
 
-# Build the docker image
-docker-build: test
-	docker build . -t ${IMG}
 
-# Push the docker image
-docker-push:
-	docker push ${IMG}
+$(CONTROLLER_GEN): $(TOOLS_DIR)/go.mod # Build controller-gen from tools folder.
+	cd $(TOOLS_DIR); go build -tags=tools -o $(BIN_DIR)/controller-gen sigs.k8s.io/controller-tools/cmd/controller-gen
 
-# find or download controller-gen
-# download controller-gen if necessary
-controller-gen:
-ifeq (, $(shell which controller-gen))
-	@{ \
-	set -e ;\
-	CONTROLLER_GEN_TMP_DIR=$$(mktemp -d) ;\
-	cd $$CONTROLLER_GEN_TMP_DIR ;\
-	go mod init tmp ;\
-	go get sigs.k8s.io/controller-tools/cmd/controller-gen@v0.2.5 ;\
-	rm -rf $$CONTROLLER_GEN_TMP_DIR ;\
-	}
-CONTROLLER_GEN=$(GOBIN)/controller-gen
-else
-CONTROLLER_GEN=$(shell which controller-gen)
-endif
+## --------------------------------------
+## Docker
+## --------------------------------------
+.PHONY: docker-pull-prerequisites
+docker-pull-prerequisites:
+	docker pull docker.io/docker/dockerfile:experimental
+	docker pull docker.io/library/golang:1.15.3
+	docker pull gcr.io/distroless/static:latest
+
+.PHONY: docker-build
+docker-build: test docker-pull-prerequisites ## Build the docker image
+	DOCKER_BUILDKIT=1 docker build --build-arg goproxy=$(GOPROXY) --build-arg ARCH=$(ARCH) --build-arg ldflags="$(LDFLAGS)" . -t $(CONTROLLER_IMG)-$(ARCH):$(TAG)
+
+.PHONY: docker-push
+docker-push: ## Push the docker image
+	docker push ${CONTROLLER_IMG}
+

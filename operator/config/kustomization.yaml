@@ -1,0 +1,14 @@
+namePrefix: capi-operator-
+
+bases:
+- crd
+- default
+- webhook
+
+# patchesJson6902:
+# - target:
+#     group: apiextensions.k8s.io
+#     version: v1
+#     kind: CustomResourceDefinition
+#     name: kubeadmcontrolplanes.controlplane.cluster.x-k8s.io
+#   path: patch_crd_webhook_namespace.yaml

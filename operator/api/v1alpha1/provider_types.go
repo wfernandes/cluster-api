@@ -47,7 +47,7 @@ type ProviderSpec struct {
 	// variables for the current provider instance, like e.g. credentials.
 	// Such configurations will be used when creating or upgrading provider components.
 	// +optional
-	SecretName *string
+	SecretName *string `json:"secretName,omitempty"`
 
 	// FetchConfig determines how the operator will fetch the components and metadata for the provider.
 	// If nil, the operator will try to fetch components according to default
@@ -64,7 +64,7 @@ type ProviderSpec struct {
 // ManagerSpec defines the properties that can be enabled on the controller manager for the provider.
 type ManagerSpec struct {
 	// ControllerManagerConfigurationSpec defines the desired state of GenericControllerManagerConfiguration.
-	ctrlcfg.ControllerManagerConfigurationSpec
+	ctrlcfg.ControllerManagerConfigurationSpec `json:",inline"`
 
 	// ProfilerAddress defines the bind address to expose the pprof profiler (e.g. localhost:6060).
 	// Default empty, meaning the profiler is disabled.
@@ -83,11 +83,11 @@ type ManagerSpec struct {
 	// Debug, if set, will override a set of fields with opinionated values for
 	// a debugging session. (Verbosity=5, ProfilerAddress=localhost:6060)
 	// +optional
-	Debug bool `json:"debug, omitempty"`
+	Debug bool `json:"debug,omitempty"`
 
 	// FeatureGates define provider specific feature flags that will be passed
 	// in as container args to the provider's controller manager.
-	FeatureGates map[string]bool `json:"featureGates, omitempty"`
+	FeatureGates map[string]bool `json:"featureGates,omitempty"`
 }
 
 // DeploymentSpec defines the properties that can be enabled on the Deployment for the provider.
