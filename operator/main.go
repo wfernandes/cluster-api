@@ -74,6 +74,14 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "CoreProvider")
 		os.Exit(1)
 	}
+	if err = (&managementclusterxk8siov1alpha1.InfrastructureProvider{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "InfrastructureProvider")
+		os.Exit(1)
+	}
+	if err = (&managementclusterxk8siov1alpha1.InfrastructureProvider{}).SetupWebhookWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create webhook", "webhook", "InfrastructureProvider")
+		os.Exit(1)
+	}
 	// +kubebuilder:scaffold:builder
 
 	setupLog.Info("starting manager")

@@ -533,7 +533,7 @@ release-manifests: $(RELEASE_DIR) $(KUSTOMIZE) ## Builds the manifests to publis
 	# Build control-plane-components.
 	$(KUSTOMIZE) build controlplane/kubeadm/config > $(RELEASE_DIR)/control-plane-components.yaml
 	# Build management cluster operator components.
-	$(KUSTOMIZE) build operator/config > $(RELEASE_DIR)/management-cluster-operator-components.yaml
+	$(KUSTOMIZE) build operator/config/default > $(RELEASE_DIR)/management-cluster-operator-components.yaml
 
 	## Build cluster-api-components (aggregate of all the provider components above).
 	cat $(RELEASE_DIR)/core-components.yaml > $(RELEASE_DIR)/cluster-api-components.yaml
