@@ -432,6 +432,7 @@ docker-push-all: $(addprefix docker-push-,$(ALL_ARCH))
 	$(MAKE) docker-push-core-manifest
 	$(MAKE) docker-push-kubeadm-bootstrap-manifest
 	$(MAKE) docker-push-kubeadm-control-plane-manifest
+	$(MAKE) docker-push-operator-manifest
 
 docker-push-%:
 	$(MAKE) ARCH=$* docker-push
