@@ -2,10 +2,10 @@
 # since it depends on service name and namespace that are out of this kustomize package.
 # It should be run by config/default
 resources:
-- bases/management.cluster.x-k8s.io.cluster.x-k8s.io_coreproviders.yaml
-- bases/management.cluster.x-k8s.io.cluster.x-k8s.io_bootstrapproviders.yaml
-- bases/management.cluster.x-k8s.io.cluster.x-k8s.io_controlplaneproviders.yaml
-- bases/management.cluster.x-k8s.io.cluster.x-k8s.io_infrastructureproviders.yaml
+- bases/management.cluster.x-k8s.io_coreproviders.yaml
+- bases/management.cluster.x-k8s.io_bootstrapproviders.yaml
+- bases/management.cluster.x-k8s.io_controlplaneproviders.yaml
+- bases/management.cluster.x-k8s.io_infrastructureproviders.yaml
 # +kubebuilder:scaffold:crdkustomizeresource
 
 patchesStrategicMerge:
