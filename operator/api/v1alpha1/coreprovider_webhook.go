@@ -24,9 +24,9 @@ import (
 )
 
 // log is for logging in this package.
-var infrastructureproviderlog = logf.Log.WithName("infrastructureprovider-resource")
+var coreproviderlog = logf.Log.WithName("coreprovider-resource")
 
-func (r *InfrastructureProvider) SetupWebhookWithManager(mgr ctrl.Manager) error {
+func (r *CoreProvider) SetupWebhookWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewWebhookManagedBy(mgr).
 		For(r).
 		Complete()
@@ -34,39 +34,39 @@ func (r *InfrastructureProvider) SetupWebhookWithManager(mgr ctrl.Manager) error
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-// +kubebuilder:webhook:verbs=create;update,path=/mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-infrastructureprovider,mutating=true,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=infrastructureproviders,versions=v1alpha1,name=default.infrastructureprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
-// +kubebuilder:webhook:verbs=create;update,path=/validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-infrastructureprovider,mutating=false,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=infrastructureproviders,versions=v1alpha1,name=validate.infrastructureprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-coreprovider,mutating=true,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=coreproviders,versions=v1alpha1,name=default.coreprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-coreprovider,mutating=false,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=coreproviders,versions=v1alpha1,name=validate.coreprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
 
-var _ webhook.Defaulter = &InfrastructureProvider{}
+var _ webhook.Defaulter = &CoreProvider{}
 
 // Default implements webhook.Defaulter so a webhook will be registered for the type
-func (r *InfrastructureProvider) Default() {
-	infrastructureproviderlog.Info("default", "name", r.Name)
+func (r *CoreProvider) Default() {
+	coreproviderlog.Info("default", "name", r.Name)
 
 	// TODO(user): fill in your defaulting logic.
 }
 
-var _ webhook.Validator = &InfrastructureProvider{}
+var _ webhook.Validator = &CoreProvider{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
-func (r *InfrastructureProvider) ValidateCreate() error {
-	infrastructureproviderlog.Info("validate create", "name", r.Name)
+func (r *CoreProvider) ValidateCreate() error {
+	coreproviderlog.Info("validate create", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object creation.
 	return nil
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
-func (r *InfrastructureProvider) ValidateUpdate(old runtime.Object) error {
-	infrastructureproviderlog.Info("validate update", "name", r.Name)
+func (r *CoreProvider) ValidateUpdate(old runtime.Object) error {
+	coreproviderlog.Info("validate update", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object update.
 	return nil
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
-func (r *InfrastructureProvider) ValidateDelete() error {
-	infrastructureproviderlog.Info("validate delete", "name", r.Name)
+func (r *CoreProvider) ValidateDelete() error {
+	coreproviderlog.Info("validate delete", "name", r.Name)
 
 	// TODO(user): fill in your validation logic upon object deletion.
 	return nil

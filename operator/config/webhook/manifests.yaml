@@ -13,12 +13,75 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-bootstrapprovider
+  failurePolicy: Fail
+  name: default.bootstrapprovider.management.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - management.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - bootstrapproviders
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-controlplaneprovider
+  failurePolicy: Fail
+  name: default.controlplaneprovider.management.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - management.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - controlplaneproviders
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-coreprovider
+  failurePolicy: Fail
+  name: default.coreprovider.management.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - management.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - coreproviders
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
       path: /mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-infrastructureprovider
   failurePolicy: Fail
   name: default.infrastructureprovider.management.cluster.x-k8s.io
   rules:
   - apiGroups:
-    - management.cluster.x-k8s.io.cluster.x-k8s.io
+    - management.cluster.x-k8s.io
     apiVersions:
     - v1alpha1
     operations:
@@ -42,12 +105,75 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-bootstrapprovider
+  failurePolicy: Fail
+  name: validate.bootstrapprovider.management.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - management.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - bootstrapproviders
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-controlplaneprovider
+  failurePolicy: Fail
+  name: validate.controlplaneprovider.management.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - management.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - controlplaneproviders
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-coreprovider
+  failurePolicy: Fail
+  name: validate.coreprovider.management.cluster.x-k8s.io
+  rules:
+  - apiGroups:
+    - management.cluster.x-k8s.io
+    apiVersions:
+    - v1alpha1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - coreproviders
+  sideEffects: None
+- admissionReviewVersions:
+  - v1beta1
+  clientConfig:
+    caBundle: Cg==
+    service:
+      name: webhook-service
+      namespace: system
       path: /validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-infrastructureprovider
   failurePolicy: Fail
   name: validate.infrastructureprovider.management.cluster.x-k8s.io
   rules:
   - apiGroups:
-    - management.cluster.x-k8s.io.cluster.x-k8s.io
+    - management.cluster.x-k8s.io
     apiVersions:
     - v1alpha1
     operations:
