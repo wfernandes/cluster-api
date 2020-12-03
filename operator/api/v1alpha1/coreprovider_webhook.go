@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 package v1alpha1
 
 import (
@@ -35,8 +34,8 @@ func (r *CoreProvider) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-// +kubebuilder:webhook:verbs=create;update,path=/mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-coreprovider,mutating=true,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=coreproviders,versions=v1alpha1,name=default.coreprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
-// +kubebuilder:webhook:verbs=create;update,path=/validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-coreprovider,mutating=false,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=coreproviders,versions=v1alpha1,name=validate.coreprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/mutate-management-cluster-x-k8s-io-v1alpha1-coreprovider,mutating=true,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=coreproviders,versions=v1alpha1,name=default.coreprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/validate-management-cluster-x-k8s-io-v1alpha1-coreprovider,mutating=false,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=coreproviders,versions=v1alpha1,name=validate.coreprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Defaulter = &CoreProvider{}
 

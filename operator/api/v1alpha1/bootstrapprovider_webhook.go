@@ -35,8 +35,8 @@ func (r *BootstrapProvider) SetupWebhookWithManager(mgr ctrl.Manager) error {
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 
-// +kubebuilder:webhook:verbs=create;update,path=/mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-bootstrapprovider,mutating=true,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=bootstrapproviders,versions=v1alpha1,name=default.bootstrapprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
-// +kubebuilder:webhook:verbs=create;update,path=/validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-bootstrapprovider,mutating=false,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=bootstrapproviders,versions=v1alpha1,name=validate.bootstrapprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/mutate-management-cluster-x-k8s-io-v1alpha1-bootstrapprovider,mutating=true,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=bootstrapproviders,versions=v1alpha1,name=default.bootstrapprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/validate-management-cluster-x-k8s-io-v1alpha1-bootstrapprovider,mutating=false,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=bootstrapproviders,versions=v1alpha1,name=validate.bootstrapprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Defaulter = &BootstrapProvider{}
 

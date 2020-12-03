@@ -33,10 +33,8 @@ func (r *InfrastructureProvider) SetupWebhookWithManager(mgr ctrl.Manager) error
 		Complete()
 }
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-
-// +kubebuilder:webhook:verbs=create;update,path=/mutate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-infrastructureprovider,mutating=true,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=infrastructureproviders,versions=v1alpha1,name=default.infrastructureprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
-// +kubebuilder:webhook:verbs=create;update,path=/validate-management-cluster-x-k8s-io-cluster-x-k8s-io-v1alpha1-infrastructureprovider,mutating=false,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=infrastructureproviders,versions=v1alpha1,name=validate.infrastructureprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/mutate-management-cluster-x-k8s-io-v1alpha1-infrastructureprovider,mutating=true,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=infrastructureproviders,versions=v1alpha1,name=default.infrastructureprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
+// +kubebuilder:webhook:verbs=create;update,path=/validate-management-cluster-x-k8s-io-v1alpha1-infrastructureprovider,mutating=false,failurePolicy=fail,groups=management.cluster.x-k8s.io,resources=infrastructureproviders,versions=v1alpha1,name=validate.infrastructureprovider.management.cluster.x-k8s.io,sideEffects=None,admissionReviewVersions=v1beta1
 
 var _ webhook.Defaulter = &InfrastructureProvider{}
 
