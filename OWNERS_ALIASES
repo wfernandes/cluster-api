@@ -39,6 +39,7 @@ aliases:
   cluster-api-book-reviewers:
   - randomvariable
   - moshloop
+  - wfernandes
 
   # -----------------------------------------------------------
   # OWNER_ALIASES for test/infrastructure/docker
@@ -64,6 +65,7 @@ aliases:
 
   cluster-api-clusterctl-maintainers:
   - fabriziopandini
+  - wfernandes
 
   cluster-api-clusterctl-reviewers:
   - fabriziopandini
